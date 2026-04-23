@@ -97,22 +97,23 @@ function createPage(frontImg, backImg, index){
   pages.push(mesh);
 }
 
-// ===== CREATE BOOK (FIXED PAIRING) =====
-const album = loadAlbum();
+// ===== STATIC PHOTO ALBUM =====
+const pagesData = [
+  { front: "images/cover.jpg", back: "images/1.jpg" },
 
-if(album.length < 2){
-  alert("Upload photos to create album");
-}
+  { front: "images/1.jpg", back: "images/2.jpg" },
+  { front: "images/2.jpg", back: "images/3.jpg" },
+  { front: "images/3.jpg", back: "images/4.jpg" },
+  { front: "images/4.jpg", back: "images/5.jpg" },
+  { front: "images/5.jpg", back: "images/6.jpg" },
 
-let pageIndex = 0;
+  { front: "images/6.jpg", back: "images/back.jpg" }
+];
 
-// 30 images → 15 pages
-for(let i=0; i < album.length; i += 2){
-  const front = album[i];
-  const back  = album[i+1] || album[i]; // duplicate if odd
-  createPage(front, back, pageIndex);
-  pageIndex++;
-}
+// create book from array
+pagesData.forEach((page, index)=>{
+  createPage(page.front, page.back, index);
+});
 
 // ===== Page Flip =====
 let currentPage = 0;
