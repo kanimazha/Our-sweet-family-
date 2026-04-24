@@ -1,6 +1,14 @@
 // ===============================
 // ADMIN LOGIN SYSTEM
 // ===============================
+// TEMP AUTH BYPASS
+const user = {
+  name: "Guest User",
+  email: "guest@demo.com"
+};
+
+console.log("Auth bypass enabled");
+
 const ADMIN_PASSWORD = "1234";
 
 function login(){
