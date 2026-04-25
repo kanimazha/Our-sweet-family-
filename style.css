@@ -1,12 +1,39 @@
-html, body {
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  background: #1a1a1a;
-  touch-action: none;
-}
-
-#container {
-  width: 100vw;
-  height: 100vh;
+body{    
+margin:0;    
+overflow:hidden;    
+background:#0b0b0b;    
+font-family:Arial;    
+}    
+    
+/* Admin panel */    
+#adminPanel{    
+position:fixed;    
+top:10px;    
+left:10px;    
+z-index:10;    
+background:#000000cc;    
+padding:15px;    
+border-radius:10px;    
+color:white;    
+}    
+    
+.controls{    
+position:fixed;    
+top:10px;    
+right:10px;    
+z-index:10;    
+}    
+    
+button{    
+padding:10px 18px;    
+border:none;    
+border-radius:8px;    
+cursor:pointer;    
+background:#fff;    
+font-weight:bold;    
+}    
+    
+#scene{    
+width:100vw;    
+height:100vh;    
 }

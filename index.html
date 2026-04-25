@@ -1,15 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Our family albam</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-
-<div id="container"></div>
-
-<script type="module" src="main.js"></script>
-</body>
+<!DOCTYPE html>  <html lang="en">      
+<head>      
+<meta charset="UTF-8">      
+<meta name="viewport" content="width=device-width, initial-scale=1.0">      
+<title>Real 3D Album Book</title>  <link rel="stylesheet" href="style.css">  <!-- ThreeJS -->  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>  </head>  <body>  <!-- 🎵 Background Music -->  <audio id="bgMusic" src="https://cdn.pixabay.com/audio/2023/03/14/audio_4f3c1c6c7f.mp3" autoplay loop></audio>    
+    
+<!-- ADMIN PANEL -->  <div id="adminPanel">      
+    <h2>Admin Upload</h2>      
+    <input type="file" id="frontUpload" multiple accept="image/*">      
+    <button onclick="saveImages()">Save Album</button>      
+</div>  <!-- Viewer buttons -->  <div class="controls">      
+    <button onclick="toggleFullscreen()">⛶ Fullscreen</button>      
+</div>  <div id="scene"></div>  <script src="script.js"></script>  </body>      
 </html>
