@@ -1,193 +1,161 @@
-// ===============================
+// ==========================
 // MODE DETECTION
-// ===============================
-const params = new URLSearchParams(window.location.search);
-const ADMIN_MODE = params.has("admin");
+// ==========================
+const ADMIN_MODE = new URLSearchParams(location.search).has("admin");
+if(!ADMIN_MODE) document.getElementById("adminPanel").style.display="none";
 
-if(!ADMIN_MODE){
-  document.getElementById("adminPanel").style.display = "none";
-}
-
-// ===============================
-// DEMO ALBUM (fallback)
-// ===============================
-const DEMO_ALBUM = [
-"https://images.unsplash.com/photo-1529636798458-92182e662485",
-"https://images.unsplash.com/photo-1519741497674-611481863552",
-"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
-"https://images.unsplash.com/photo-1529333166437-7750a6dd5a70",
-"https://images.unsplash.com/photo-1492724441997-5dc865305da7",
-"https://images.unsplash.com/photo-1522673607200-164d1b6ce486"
+// ==========================
+// DEMO ALBUM (always works)
+// ==========================
+const DEMO = [
+"https://picsum.photos/id/1011/1200/800",
+"https://picsum.photos/id/1015/1200/800",
+"https://picsum.photos/id/1021/1200/800",
+"https://picsum.photos/id/1035/1200/800",
+"https://picsum.photos/id/1043/1200/800",
+"https://picsum.photos/id/1067/1200/800"
 ];
 
-// ===============================
-// SMART ALBUM LOADER
-// ===============================
+// ==========================
+// LOAD ALBUM
+// ==========================
 function loadAlbum(){
-  const saved = JSON.parse(localStorage.getItem("album") || "[]");
-  if(saved.length === 0 && !ADMIN_MODE) return DEMO_ALBUM;
-  return saved;
+  const saved = JSON.parse(localStorage.getItem("album")||"[]");
+  return saved.length ? saved : DEMO;
 }
 
-// ===============================
-// IMAGE OPTIMIZER (resize + webp)
-// ===============================
-async function resizeAndConvert(file){
+// ==========================
+// RESIZE + WEBP
+// ==========================
+async function processImage(file){
   const img = new Image();
   img.src = URL.createObjectURL(file);
   await img.decode();
 
-  const canvas = document.createElement("canvas");
-  const max = 2048;
-  let w = img.width, h = img.height;
-
-  if(w > max || h > max){
-    const scale = Math.min(max/w, max/h);
-    w *= scale; h *= scale;
+  const max=2048;
+  let w=img.width, h=img.height;
+  if(w>max||h>max){
+    const s=Math.min(max/w,max/h);
+    w*=s; h*=s;
   }
 
-  canvas.width = w;
-  canvas.height = h;
-  canvas.getContext("2d").drawImage(img,0,0,w,h);
-
-  return canvas.toDataURL("image/webp",0.8);
+  const c=document.createElement("canvas");
+  c.width=w; c.height=h;
+  c.getContext("2d").drawImage(img,0,0,w,h);
+  return c.toDataURL("image/webp",0.85);
 }
 
-// ===============================
+// ==========================
 // ADMIN SAVE
-// ===============================
+// ==========================
 async function saveImages(){
-  if(!ADMIN_MODE) return alert("Open site with ?admin");
+  if(!ADMIN_MODE) return alert("Open with ?admin");
 
-  const files = document.getElementById("frontUpload").files;
-  if(files.length === 0) return alert("Select images");
+  const files=document.getElementById("imageUpload").files;
+  if(!files.length) return alert("Choose images");
 
-  const imgs = [];
-  for(const file of files){
-    imgs.push(await resizeAndConvert(file));
-  }
+  const arr=[];
+  for(const f of files) arr.push(await processImage(f));
 
-  localStorage.setItem("album", JSON.stringify(imgs));
-  alert("Album Saved! Reload page.");
+  localStorage.setItem("album",JSON.stringify(arr));
+  alert("Album Saved! Refresh page");
 }
 
-// ===============================
-// THREE SCENE
-// ===============================
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x111111);
+// ==========================
+// THREE SETUP
+// ==========================
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x111111);
 
-const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight,0.1,100);
-camera.position.set(0,1.5,4);
+const camera=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,0.1,100);
+camera.position.set(0,1.6,4);
 
-const renderer = new THREE.WebGLRenderer({antialias:true});
+const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 document.getElementById("scene").appendChild(renderer.domElement);
 
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
+const controls=new THREE.OrbitControls(camera,renderer.domElement);
 controls.enablePan=false;
 controls.enableZoom=false;
 
 scene.add(new THREE.AmbientLight(0xffffff,1.2));
-const light = new THREE.DirectionalLight(0xffffff,1.2);
-light.position.set(3,5,4);
-scene.add(light);
+const dir=new THREE.DirectionalLight(0xffffff,1.2);
+dir.position.set(3,5,4);
+scene.add(dir);
 
-// ===============================
-// BOOK SYSTEM
-// ===============================
-const PAGE_WIDTH = 1.6;
-const PAGE_HEIGHT = 2.2;
-const PAGE_SEGMENTS = 30;
-let pages = [];
+// ==========================
+// BOOK CREATION
+// ==========================
+const PAGE_W=1.6, PAGE_H=2.2, SEG=30;
+const pages=[];
+let currentPage=0;
 
-function createPage(frontImg, backImg, index){
-
-  const geo = new THREE.PlaneGeometry(
-    PAGE_WIDTH, PAGE_HEIGHT, PAGE_SEGMENTS, PAGE_SEGMENTS
-  );
-
-  const loader = new THREE.TextureLoader();
-  const frontTexture = loader.load(frontImg);
-  const backTexture  = loader.load(backImg);
-
-  const mat = new THREE.MeshStandardMaterial({
-    map: frontTexture,
-    side: THREE.DoubleSide
-  });
-
-  const mesh = new THREE.Mesh(geo, mat);
-  mesh.position.z = -index * 0.003;
+function createPage(textureURL,index){
+  const geo=new THREE.PlaneGeometry(PAGE_W,PAGE_H,SEG,SEG);
+  const tex=new THREE.TextureLoader().load(textureURL);
+  const mat=new THREE.MeshStandardMaterial({map:tex,side:THREE.DoubleSide});
+  const mesh=new THREE.Mesh(geo,mat);
+  mesh.position.z=-index*0.003;
+  mesh.userData={flip:false,prog:0};
   scene.add(mesh);
-
-  mesh.userData = { flipped:false, progress:0 };
   pages.push(mesh);
 }
 
-// CREATE BOOK AFTER LOAD
-window.addEventListener("load", ()=>{
-  const album = loadAlbum();
-  for(let i=0;i<album.length;i++){
-    createPage(album[i], album[i+1] || album[0], i);
-  }
+const album=loadAlbum();
+album.forEach((img,i)=>createPage(img,i));
+
+// ==========================
+// PAGE FLIP
+// ==========================
+function flip(dir){
+  const page=pages[currentPage];
+  if(!page) return;
+  page.userData.flip=!page.userData.flip;
+  currentPage=Math.max(0,Math.min(pages.length-1,currentPage+dir));
+}
+window.addEventListener("click",()=>flip(1));
+
+// mobile swipe
+let startX=0;
+addEventListener("touchstart",e=>startX=e.touches[0].clientX);
+addEventListener("touchend",e=>{
+  if(e.changedTouches[0].clientX<startX) flip(1);
+  else flip(-1);
 });
 
-// ===============================
-// PAGE FLIP
-// ===============================
-let currentPage = 0;
-
-function flipPage(dir){
-  const page = pages[currentPage];
-  if(!page) return;
-  page.userData.flipped = !page.userData.flipped;
-  currentPage = Math.max(0, Math.min(pages.length-1, currentPage+dir));
-}
-
-window.addEventListener("click",()=>flipPage(1));
-
-// ===============================
-// CURL ANIMATION
-// ===============================
+// ==========================
+// ANIMATION LOOP
+// ==========================
 function animate(){
   requestAnimationFrame(animate);
 
-  pages.forEach(page=>{
-    const ud = page.userData;
-    if(ud.flipped && ud.progress < 1) ud.progress += 0.05;
-    if(!ud.flipped && ud.progress > 0) ud.progress -= 0.05;
+  pages.forEach(p=>{
+    const u=p.userData;
+    if(u.flip && u.prog<1) u.prog+=0.06;
+    if(!u.flip && u.prog>0) u.prog-=0.06;
 
-    const pos = page.geometry.attributes.position;
+    const pos=p.geometry.attributes.position;
     for(let i=0;i<pos.count;i++){
-      const x = pos.getX(i);
-      const curl = Math.sin(ud.progress*Math.PI)*0.6;
-      pos.setZ(i, curl*(x/PAGE_WIDTH));
+      const x=pos.getX(i);
+      const curl=Math.sin(u.prog*Math.PI)*0.6;
+      pos.setZ(i,curl*(x/PAGE_W));
     }
-    pos.needsUpdate = true;
-    page.rotation.y = -ud.progress*Math.PI;
+    pos.needsUpdate=true;
+    p.rotation.y=-u.prog*Math.PI;
   });
 
   renderer.render(scene,camera);
 }
 animate();
 
-// ===============================
-// GESTURES + MUSIC + FULLSCREEN
-// ===============================
-let touchStartX=0;
-window.addEventListener("touchstart",e=>touchStartX=e.touches[0].clientX);
-window.addEventListener("touchend",e=>{
-  if(e.changedTouches[0].clientX < touchStartX) flipPage(1);
-  else flipPage(-1);
-});
-
+// ==========================
 function toggleFullscreen(){
-  if(!document.fullscreenElement)
-    document.body.requestFullscreen();
+  if(!document.fullscreenElement) document.body.requestFullscreen();
   else document.exitFullscreen();
 }
 
+// music unlock mobile
 document.body.addEventListener("click",()=>{
   document.getElementById("bgMusic").play();
 },{once:true});

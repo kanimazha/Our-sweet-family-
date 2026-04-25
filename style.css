@@ -5,16 +5,21 @@ body{
   font-family:Arial;
 }
 
-/* Admin panel */
+#scene{
+  width:100vw;
+  height:100vh;
+}
+
+/* admin */
 #adminPanel{
   position:fixed;
   top:10px;
   left:10px;
-  z-index:10;
   background:#000000cc;
   padding:15px;
   border-radius:12px;
   color:white;
+  z-index:10;
 }
 
 .controls{
@@ -25,15 +30,10 @@ body{
 }
 
 button{
-  padding:10px 18px;
+  padding:10px 16px;
   border:none;
   border-radius:8px;
   cursor:pointer;
   background:#fff;
   font-weight:bold;
-}
-
-#scene{
-  width:100vw;
-  height:100vh;
 }
